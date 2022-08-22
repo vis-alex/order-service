@@ -28,26 +28,38 @@ public class OrderServiceApplication {
     //по цепочке из OrderService в Inventory service, потому что мы вызываем его через Feign а
     //Добавляются секьюрити  депенднеси в помник
     //TODO Find a way to send token with feign request
+//    @Bean
+//    public RequestInterceptor requestTokenBearerInterceptor() {
+//        return new RequestInterceptor() {
+//            @Override
+//            public void apply(RequestTemplate requestTemplate) {
+//                HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder
+//                        .getRequestAttributes()).getRequest();
+//
+//                System.out.println("In the request interceptor");
+//
+//                System.out.println(SecurityContextHolder.getContext());
+//                System.out.println(SecurityContextHolder.getContext().getAuthentication());
+//
+//                JwtAuthenticationToken token = (JwtAuthenticationToken) SecurityContextHolder
+//                        .getContext().getAuthentication();
+//
+//                System.out.println("Token header: " + request.getHeader(HttpHeaders.AUTHORIZATION));
+//                requestTemplate.header("Authorization", request.getHeader(HttpHeaders.AUTHORIZATION));
+////                requestTemplate.header("Authorization", "Bearer" + token.getToken().getTokenValue());
+//            }
+//        };
+//    }
+
     @Bean
     public RequestInterceptor requestTokenBearerInterceptor() {
-        return new RequestInterceptor() {
-            @Override
-            public void apply(RequestTemplate requestTemplate) {
-                HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder
-                        .getRequestAttributes()).getRequest();
+        return requestTemplate -> {
+            JwtAuthenticationToken token = (JwtAuthenticationToken) SecurityContextHolder.getContext()
+                    .getAuthentication();
 
-                System.out.println("In the request interceptor");
+            System.out.println(token.getToken().getTokenValue());
 
-                System.out.println(SecurityContextHolder.getContext());
-                System.out.println(SecurityContextHolder.getContext().getAuthentication());
-
-                JwtAuthenticationToken token = (JwtAuthenticationToken) SecurityContextHolder
-                        .getContext().getAuthentication();
-
-                System.out.println("Token header: " + request.getHeader(HttpHeaders.AUTHORIZATION));
-                requestTemplate.header("Authorization", request.getHeader(HttpHeaders.AUTHORIZATION));
-//                requestTemplate.header("Authorization", "Bearer" + token.getToken().getTokenValue());
-            }
+            requestTemplate.header("Authorization", "Bearer " + token.getToken().getTokenValue());
         };
     }
 

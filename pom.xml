@@ -69,6 +69,15 @@
             <artifactId>spring-cloud-starter-bus-amqp</artifactId>
             <version>3.1.2</version>
         </dependency>
+        <!-- Here we don`t need to enable this dependency, cause we have it in spring-cloud-starter-bus-amqp
+            We dont need conflict in future
+        -->
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.cloud</groupId>-->
+<!--            <artifactId>spring-cloud-stream-binder-rabbit</artifactId>-->
+<!--            <version>3.2.4</version>-->
+<!--        </dependency>-->
+
         <!--		Вместо feign client использовал openfeign client для избежания конфликта зависимостей-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -76,6 +85,10 @@
             <version>3.1.3</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
         <!--  Эта депенденси нужна для того чтобы мы могли читать jwts info из сервера авторизации
 и валидировать входящий токен-->
         <dependency>
@@ -85,6 +98,11 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-oauth2-resource-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
+            <version>2.1.3</version>
         </dependency>
 
     </dependencies>
