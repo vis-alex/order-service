@@ -9,9 +9,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreaker;
 import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreakerFactory;
 import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
 @RestController
@@ -28,6 +30,8 @@ public class OrderController {
     //Stream Bridge - component which will follow messages to specific output binder
     private final StreamBridge streamBridge;
 
+    //Need to be the same thread name - traceableExecutorService
+    private final ExecutorService traceableExecutorService;
     @PostMapping
     public String placeOrder(@RequestBody OrderDto orderDto) {
 
@@ -36,7 +40,10 @@ public class OrderController {
 
         //Do the supplier , which returns have the stock product or not
         Supplier<Boolean> booleanSupplier = () -> orderDto.getOrderLineItems().stream()
-                .allMatch(orderLineItem -> inventoryClient.checkStock(orderLineItem.getScuCode()));
+                .allMatch(orderLineItem -> {
+                    log.info("Making call to inventory service for ScuCode {}", orderLineItem.getScuCode());
+                    return inventoryClient.checkStock(orderLineItem.getScuCode());
+                });
 
         //If service fall, then we handle exception
         boolean isAllProductsInStock = breaker.run(booleanSupplier, throwable -> handleErrorCase());
@@ -48,9 +55,10 @@ public class OrderController {
 
             orderRepository.save(order);
 
-            log.info("Sending Order Details to notification Server");
+            log.info("Sending Order Details wit Order Id {} to notification Service", order.getId());
             //I send order_id to the binding `notificationEventSupplier-out-0`
-            streamBridge.send("notificationEventSupplier-out-0", order.getId());
+            streamBridge.send("notificationEventSupplier-out-0",
+                    MessageBuilder.withPayload(order.getId()).build());
 
             return "Order place successfully";
         }
